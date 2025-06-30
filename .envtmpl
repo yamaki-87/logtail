@@ -1,0 +1,3 @@
+WEBHOOKURL=https://example.com/webhook
+LOGLEVEL=debug
+CONFIGPATH=config/logs.yml

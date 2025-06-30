@@ -1,0 +1,6 @@
+- {
+    logPath: "testlog/serviceA.log",
+    keywords: ["ERROR", "CRITICAL"],
+    sysName: "serviceA",
+  }
+- { logPath: "testlog/serviceB.log", keywords: ["WARN"], sysName: "serviceB" }

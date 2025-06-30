@@ -1,0 +1,50 @@
+name: Build for Linux
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Nim
+        uses: iffy/install-nim@v4
+        with:
+          version: "stable"
+
+      - name: Build Linux binary
+        run: |
+          nimble install -y
+          nim c -d:ssl -d:release --out:logtail ./src/logtail.nim
+
+      - name: 🔐 Setup SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > key.pem
+          chmod 600 key.pem
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 二重起動チェック
+      - name: 🛑 Stop service if exists
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
+          if systemctl list-units --full -all | grep -Fq 'logtail.service'; then
+              echo "Stopping logtail.service..."
+              sudo systemctl stop logtail
+          else
+              echo "logtail.service not found. Skipping stop."
+          fi
+          EOF
+
+      - name: 🚀 Deploy to VPS
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no logtail ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/logtail/logtail
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
+          sudo systemctl daemon-reload
+          sudo systemctl restart logtail
+          EOF
