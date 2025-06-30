@@ -46,6 +46,7 @@ jobs:
 
           scp -i key.pem -o StrictHostKeyChecking=no logtail ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/logtail/logtail
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
+          mkdir -p /opt/logtail/config
           sudo systemctl daemon-reload
           sudo systemctl restart logtail
           EOF

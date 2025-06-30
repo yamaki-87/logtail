@@ -1,0 +1,20 @@
+[Unit]
+Description=logtail Service
+After=network.target
+
+[Service]
+ExecStart={{.exepath}
+WorkingDirectory={.workdir}
+Restart=always
+StandardOutput=journal
+StandardError=journal
+User={.user}
+Group={.group}
+
+# 環境変数（セキュアに管理）
+Environment="WEBHOOKURL=url"
+Environment="LOGLEVEL=info"
+Environment="CONFIGPATH=config.yml"
+
+[Install]
+WantedBy=multi-user.target
