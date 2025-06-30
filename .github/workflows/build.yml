@@ -29,8 +29,8 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # 二重起動チェック
-      - name: 🛑 Stop service if exists
+      # 二重起動チェックおよび前準備
+      - name: 🛑 Stop service if exists and mkdir folders
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
           if systemctl list-units --full -all | grep -Fq 'logtail.service'; then
@@ -39,10 +39,12 @@ jobs:
           else
               echo "logtail.service not found. Skipping stop."
           fi
+          mkdir -p /opt/logtail
           EOF
 
       - name: 🚀 Deploy to VPS
         run: |
+
           scp -i key.pem -o StrictHostKeyChecking=no logtail ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/logtail/logtail
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} <<'EOF'
           sudo systemctl daemon-reload
